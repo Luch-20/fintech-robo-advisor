@@ -81,10 +81,14 @@ git clone https://github.com/<your-username>/<your-repo-name>.git
 cd <your-repo-name>
 pip install -r requirements.txt
 
-# 1) Prepare price data from CSV (Data_test.csv)
+# 1) (Optional) Refresh / prepare price data
+#    By default this reads from data/Data_test.csv.
+#    If you set ENABLE_ONLINE_DATA=1 in your environment,
+#    it will first try to fetch newer daily prices from Yahoo Finance
+#    and then fall back to the CSV.
 python3 src/get_data.py
 
-# 2) (Optional) Train the DDPG agent from scratch
+# 2) (Optional) Train the DDPG agent from scratch using the prepared data
 python3 Train_Model.py
 
 # 3) Start the web application
