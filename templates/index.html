@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Optimization Advisor</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .stock-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .stock-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .stock-checkbox:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .stock-checkbox input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .stock-checkbox.selected {
+            border-color: #667eea;
+            background: #e8f0ff;
+        }
+        
+        .capital-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .capital-input {
+            display: none;
+        }
+        
+        .capital-input.active {
+            display: block;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+        
+        #results {
+            display: none;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .results-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .results-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+        
+        .results-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .results-table td:last-child {
+            max-width: 400px;
+            font-size: 13px;
+        }
+        
+        .chart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Portfolio Optimization Advisor</h1>
+        <p class="subtitle">IPO + RL Model - Tối ưu hóa phân bổ vốn VN Index</p>
+        
+        <div id="statusMessage"></div>
+        
+        <div class="section">
+            <h2>Bước 1: Chọn 5 mã cổ phiếu/chỉ số</h2>
+            <p style="color: #666; margin-bottom: 15px;">Chọn đúng 5 mã từ danh sách 30 cổ phiếu + VN-Index:</p>
+            <div class="stock-selection" id="stockSelection">
+                {% for stock in stocks %}
+                <label class="stock-checkbox">
+                    <input type="checkbox" value="{{ stock }}" onchange="updateStockSelection()">
+                    <span>{{ stock }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <p id="stockCount" style="color: #666; font-weight: 600;">Đã chọn: 0/5</p>
+        </div>
+        
+        <div class="section">
+            <h2>Bước 2: Nhập vốn đầu tư</h2>
+            <p style="color: #666; margin-bottom: 15px;">Nhập số vốn (đơn vị: VNĐ hoặc USD) cho từng mã đã chọn:</p>
+            <div id="capitalInputs" class="capital-inputs">
+                <!-- Dynamic inputs will be added here -->
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Bước 3: Chọn thời gian đầu tư</h2>
+            <div class="form-group">
+                <label>Ngày bắt đầu:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="form-group">
+                <label>Ngày kết thúc:</label>
+                <input type="date" id="endDate">
+            </div>
+            <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                💡 Thời gian đầu tư: Từ hôm nay đến tối đa 10 ngày tiếp theo
+            </p>
+        </div>
+        
+        <button onclick="analyzePortfolio()" id="analyzeBtn">Phân tích & Đề xuất</button>
+        
+        <div id="results">
+            <div class="section">
+                <h2>Kết quả Phân tích</h2>
+                
+                <h3 style="margin: 20px 0 10px; color: #667eea;">So sánh Hiệu suất</h3>
+                <div class="results-grid" id="metricsGrid"></div>
+                
+                <h3 style="margin: 20px 0 10px; color: #667eea;">Đề xuất Phân bổ Vốn</h3>
+                <table class="results-table" id="resultsTable"></table>
+                
+                <h3 style="margin: 20px 0 10px; color: #667eea;">Chi tiết Phân tích từng Mã</h3>
+                <div id="detailedAnalysis"></div>
+                
+                <h3 style="margin: 20px 0 10px; color: #667eea;">Biểu đồ Phân bổ</h3>
+                <div class="chart-container">
+                    <div id="allocationChart"></div>
+                </div>
+                
+                <h3 style="margin: 20px 0 10px; color: #667eea;">Khẩu vị Rủi ro</h3>
+                <div id="riskProfile"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedStocks = [];
+        
+        // Set default dates (today to 10 days later)
+        const today = new Date();
+        const tenDaysLater = new Date(today);
+        tenDaysLater.setDate(today.getDate() + 10);
+        
+        document.getElementById('startDate').value = today.toISOString().split('T')[0];
+        document.getElementById('endDate').value = tenDaysLater.toISOString().split('T')[0];
+        
+        // Set min and max dates
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        
+        startDateInput.min = today.toISOString().split('T')[0];
+        startDateInput.max = tenDaysLater.toISOString().split('T')[0];
+        
+        endDateInput.min = today.toISOString().split('T')[0];
+        endDateInput.max = tenDaysLater.toISOString().split('T')[0];
+        
+        // Update end date max when start date changes
+        startDateInput.addEventListener('change', function() {
+            const startDate = new Date(this.value);
+            const maxEndDate = new Date(startDate);
+            maxEndDate.setDate(startDate.getDate() + 10);
+            endDateInput.min = this.value;
+            endDateInput.max = maxEndDate.toISOString().split('T')[0];
+            
+            // If current end date is beyond max, adjust it
+            const currentEndDate = new Date(endDateInput.value);
+            if (currentEndDate > maxEndDate) {
+                endDateInput.value = maxEndDate.toISOString().split('T')[0];
+            }
+        });
+        
+        // Check model status on load
+        checkModelStatus();
+        
+        function checkModelStatus() {
+            fetch('/check_model')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.loaded) {
+                        showStatus(data.message, 'error');
+                    } else {
+                        showStatus('✅ Model đã sẵn sàng!', 'success');
+                    }
+                });
+        }
+        
+        function updateStockSelection() {
+            const checkboxes = document.querySelectorAll('#stockSelection input[type="checkbox"]');
+            selectedStocks = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            
+            // Update count
+            document.getElementById('stockCount').textContent = `Đã chọn: ${selectedStocks.length}/5`;
+            
+            // Update checkbox styles
+            checkboxes.forEach(cb => {
+                const label = cb.closest('.stock-checkbox');
+                if (cb.checked) {
+                    label.classList.add('selected');
+                } else {
+                    label.classList.remove('selected');
+                }
+            });
+            
+            // Update capital inputs
+            updateCapitalInputs();
+            
+            // Disable/enable checkboxes
+            if (selectedStocks.length >= 5) {
+                checkboxes.forEach(cb => {
+                    if (!cb.checked) {
+                        cb.disabled = true;
+                    }
+                });
+            } else {
+                checkboxes.forEach(cb => {
+                    cb.disabled = false;
+                });
+            }
+        }
+        
+        function updateCapitalInputs() {
+            const container = document.getElementById('capitalInputs');
+            container.innerHTML = '';
+            
+            selectedStocks.forEach((stock, index) => {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.innerHTML = `
+                    <label>Vốn cho ${stock}:</label>
+                    <input type="number" id="capital_${index}" placeholder="Nhập số vốn" min="0" step="1000">
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            statusDiv.style.display = 'block';
+        }
+        
+        function showLoading() {
+            showStatus('<div class="spinner"></div><div class="loading">Đang phân tích...</div>', 'info');
+        }
+        
+        async function analyzePortfolio() {
+            if (selectedStocks.length !== 5) {
+                showStatus('❌ Vui lòng chọn đúng 5 mã cổ phiếu!', 'error');
+                return;
+            }
+            
+            const capitalAmounts = [];
+            let totalCapital = 0;
+            
+            for (let i = 0; i < 5; i++) {
+                const capital = parseFloat(document.getElementById(`capital_${i}`).value) || 0;
+                capitalAmounts.push(capital);
+                totalCapital += capital;
+            }
+            
+            if (totalCapital === 0) {
+                showStatus('❌ Tổng vốn không thể bằng 0!', 'error');
+                return;
+            }
+            
+            showLoading();
+            document.getElementById('results').style.display = 'none';
+            
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        stocks: selectedStocks,
+                        capital_0: capitalAmounts[0],
+                        capital_1: capitalAmounts[1],
+                        capital_2: capitalAmounts[2],
+                        capital_3: capitalAmounts[3],
+                        capital_4: capitalAmounts[4],
+                        start_date: startDate,
+                        end_date: endDate
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showStatus(`❌ ${data.error}`, 'error');
+                    return;
+                }
+                
+                showStatus('✅ Phân tích hoàn tất!', 'success');
+                displayResults(data);
+                
+            } catch (error) {
+                showStatus(`❌ Lỗi: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayResults(data) {
+            document.getElementById('results').style.display = 'block';
+            
+            // Display metrics
+            const metricsGrid = document.getElementById('metricsGrid');
+            metricsGrid.innerHTML = '';
+            
+            const metrics = data.metrics;
+            const metricsList = [
+                {label: 'Lợi nhuận hiện tại', value: metrics.current_return.toFixed(2), suffix: '%', color: '#667eea'},
+                {label: 'Lợi nhuận đề xuất', value: metrics.recommended_return.toFixed(2), suffix: '%', color: '#28a745'},
+                {label: 'Cải thiện lợi nhuận', value: '+' + metrics.improvement_return.toFixed(2), suffix: '%', color: '#17a2b8'},
+                {label: 'Sharpe hiện tại', value: metrics.current_sharpe.toFixed(2), suffix: '', color: '#667eea'},
+                {label: 'Sharpe đề xuất', value: metrics.recommended_sharpe.toFixed(2), suffix: '', color: '#28a745'},
+                {label: 'Cải thiện Sharpe', value: '+' + metrics.improvement_sharpe.toFixed(2), suffix: '', color: '#17a2b8'},
+                {label: 'Turnover Rate', value: (metrics.turnover_rate || 0).toFixed(2), suffix: '%', color: '#ffc107', 
+                 tooltip: 'Tỷ lệ phần trăm danh mục cần giao dịch để chuyển từ phân bổ hiện tại sang phân bổ đề xuất'}
+            ];
+            
+            metricsList.forEach(metric => {
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                card.style.background = `linear-gradient(135deg, ${metric.color} 0%, ${metric.color}dd 100%)`;
+                if (metric.tooltip) {
+                    card.title = metric.tooltip;
+                    card.style.cursor = 'help';
+                }
+                card.innerHTML = `
+                    <div class="metric-label">${metric.label}${metric.tooltip ? ' ⓘ' : ''}</div>
+                    <div class="metric-value">${metric.value}${metric.suffix}</div>
+                `;
+                metricsGrid.appendChild(card);
+            });
+            
+            // Display table
+            const table = document.getElementById('resultsTable');
+            table.innerHTML = `
+                <tr>
+                    <th>Mã</th>
+                    <th>Vốn hiện tại</th>
+                    <th>Vốn đề xuất</th>
+                    <th>Thay đổi</th>
+                    <th>Hành động</th>
+                </tr>
+            `;
+            
+            data.results.forEach(result => {
+                const change = (result.change * 100).toFixed(2);
+                const changeColor = change > 0 ? '#28a745' : (change < 0 ? '#dc3545' : '#666');
+                const row = table.insertRow();
+                
+                row.innerHTML = `
+                    <td><strong>${result.ticker}</strong></td>
+                    <td>${formatCurrency(result.current_capital)} (${(result.current_weight * 100).toFixed(2)}%)</td>
+                    <td>${formatCurrency(result.recommended_capital)} (${(result.recommended_weight * 100).toFixed(2)}%)</td>
+                    <td style="color: ${changeColor}; font-weight: 600;">${change > 0 ? '+' : ''}${change}%</td>
+                    <td>${getActionText(result.action)}</td>
+                `;
+            });
+            
+            // Display detailed analysis for each stock
+            const detailedAnalysis = document.getElementById('detailedAnalysis');
+            detailedAnalysis.innerHTML = '';
+            
+            data.results.forEach(result => {
+                const detailCard = document.createElement('div');
+                detailCard.style.cssText = 'margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #667eea;';
+                
+                const actionColor = result.action === 'Increase' ? '#28a745' : 
+                                   (result.action === 'Decrease' ? '#dc3545' : '#667eea');
+                
+                let metricsHtml = '';
+                if (result.metrics) {
+                    metricsHtml = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px;">
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Lợi nhuận kỳ vọng</div>
+                                <div style="font-size: 18px; font-weight: bold; color: ${result.metrics.expected_return >= 0 ? '#28a745' : '#dc3545'}">
+                                    ${result.metrics.expected_return.toFixed(2)}%
+                                </div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Độ biến động</div>
+                                <div style="font-size: 18px; font-weight: bold; color: #667eea">
+                                    ${result.metrics.volatility.toFixed(2)}%
+                                </div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Sharpe Ratio</div>
+                                <div style="font-size: 18px; font-weight: bold; color: ${result.metrics.sharpe_ratio >= 1 ? '#28a745' : '#ffc107'}">
+                                    ${result.metrics.sharpe_ratio.toFixed(2)}
+                                </div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Tương quan Portfolio</div>
+                                <div style="font-size: 18px; font-weight: bold; color: ${Math.abs(result.metrics.correlation) < 0.5 ? '#28a745' : '#dc3545'}">
+                                    ${result.metrics.correlation.toFixed(2)}
+                                </div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Momentum</div>
+                                <div style="font-size: 18px; font-weight: bold; color: ${result.metrics.momentum >= 0 ? '#28a745' : '#dc3545'}">
+                                    ${result.metrics.momentum.toFixed(2)}%
+                                </div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Tỷ lệ ngày tăng</div>
+                                <div style="font-size: 18px; font-weight: bold; color: ${result.metrics.trend_ratio >= 50 ? '#28a745' : '#dc3545'}">
+                                    ${result.metrics.trend_ratio.toFixed(1)}%
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                detailCard.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <h4 style="margin: 0; color: #667eea; flex: 1;">${result.ticker}</h4>
+                        <span style="padding: 5px 15px; background: ${actionColor}; color: white; border-radius: 20px; font-size: 12px; font-weight: bold;">
+                            ${getActionText(result.action)}
+                        </span>
+                    </div>
+                    ${result.reasons && result.reasons.length > 0 ? `
+                        <div style="margin-bottom: 15px;">
+                            <strong style="color: #333; display: block; margin-bottom: 10px;">📊 Lý do đề xuất:</strong>
+                            <ul style="margin: 0; padding-left: 20px; color: #555;">
+                                ${result.reasons.map(reason => `<li style="margin-bottom: 8px;">${reason}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    ${metricsHtml}
+                `;
+                
+                detailedAnalysis.appendChild(detailCard);
+            });
+            
+            // Display allocation chart
+            const currentData = {
+                labels: data.results.map(r => r.ticker),
+                values: data.results.map(r => Math.max(0, (r.current_weight || 0) * 100)),
+                type: 'pie',
+                name: 'Hiện tại',
+                marker: {colors: ['#667eea', '#764ba2', '#f093fb', '#4ecdc4', '#45b7d1']}
+            };
+            
+            const recommendedData = {
+                labels: data.results.map(r => r.ticker),
+                values: data.results.map(r => Math.max(0, (r.recommended_weight || 0) * 100)),
+                type: 'pie',
+                name: 'Đề xuất',
+                marker: {colors: ['#28a745', '#20c997', '#17a2b8', '#ffc107', '#fd7e14']}
+            };
+            
+            // Debug: Log values to console
+            console.log('Current weights:', currentData.values);
+            console.log('Recommended weights:', recommendedData.values);
+            console.log('Results data:', data.results);
+            
+            // Ensure values sum to 100% (normalize if needed)
+            const currentSum = currentData.values.reduce((a, b) => a + b, 0);
+            const recommendedSum = recommendedData.values.reduce((a, b) => a + b, 0);
+            
+            if (currentSum > 0) {
+                currentData.values = currentData.values.map(v => (v / currentSum) * 100);
+            }
+            if (recommendedSum > 0) {
+                recommendedData.values = recommendedData.values.map(v => (v / recommendedSum) * 100);
+            }
+            
+            const layout = {
+                title: 'So sánh Phân bổ Vốn',
+                grid: {rows: 1, columns: 2},
+                showlegend: true
+            };
+            
+            Plotly.newPlot('allocationChart', [
+                {
+                    labels: currentData.labels,
+                    values: currentData.values,
+                    type: 'pie',
+                    name: 'Hiện tại',
+                    domain: {row: 0, column: 0},
+                    marker: {colors: currentData.marker.colors},
+                    textinfo: 'label+percent',
+                    textposition: 'outside'
+                },
+                {
+                    labels: recommendedData.labels,
+                    values: recommendedData.values,
+                    type: 'pie',
+                    name: 'Đề xuất',
+                    domain: {row: 0, column: 1},
+                    marker: {colors: recommendedData.marker.colors},
+                    textinfo: 'label+percent',
+                    textposition: 'outside'
+                }
+            ], {
+                ...layout,
+                grid: {rows: 1, columns: 2, pattern: 'independent'}
+            }, {responsive: true});
+            
+            // Display risk profile
+            const riskProfile = document.getElementById('riskProfile');
+            riskProfile.innerHTML = `
+                <div style="padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <p><strong>Mức độ rủi ro:</strong> ${data.risk_profile.risk_level}</p>
+                    <p><strong>Risk Tolerance:</strong> ${data.risk_profile.risk_tolerance.toFixed(4)}</p>
+                    <p><strong>Target Return:</strong> ${data.risk_profile.target_return.toFixed(2)}% / năm</p>
+                </div>
+            `;
+        }
+        
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('vi-VN').format(value);
+        }
+        
+        function getActionText(action) {
+            const actions = {
+                'Increase': '⬆️ Tăng',
+                'Decrease': '⬇️ Giảm',
+                'Keep': '➡️ Giữ nguyên'
+            };
+            return actions[action] || action;
+        }
+    </script>
+</body>
+</html>

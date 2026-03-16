@@ -1,0 +1,52 @@
+🌐 API Link để Share
+
+Base URL: https://YOUR_NGROK_URL.ngrok.io
+
+📡 Endpoints:
+- Health Check: https://YOUR_NGROK_URL.ngrok.io/health
+- Main API: https://YOUR_NGROK_URL.ngrok.io/api
+- Agent Analyze: https://YOUR_NGROK_URL.ngrok.io/agent/analyze
+
+📝 Ví dụ Request (cURL):
+curl -X POST https://YOUR_NGROK_URL.ngrok.io/api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "investing": [
+      {"ticker": "ACB", "amount": 1000000},
+      {"ticker": "BCM", "amount": 2000000}
+    ]
+  }'
+
+📝 Ví dụ Request (Python):
+import requests
+
+url = "https://YOUR_NGROK_URL.ngrok.io/api"
+payload = {
+    "investing": [
+        {"ticker": "ACB", "amount": 1000000},
+        {"ticker": "BCM", "amount": 2000000}
+    ]
+}
+
+response = requests.post(url, json=payload)
+print(response.json())
+
+📝 Ví dụ Request (JavaScript):
+fetch('https://YOUR_NGROK_URL.ngrok.io/api', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    investing: [
+      { ticker: "ACB", amount: 1000000 },
+      { ticker: "BCM", amount: 2000000 }
+    ]
+  })
+})
+  .then(res => res.json())
+  .then(data => console.log(data));
+
+⚠️ Lưu ý:
+- Thay YOUR_NGROK_URL bằng URL thực tế từ ngrok
+- Service phải chạy liên tục để bạn bè gọi được
+- URL ngrok free sẽ thay đổi mỗi lần restart
+

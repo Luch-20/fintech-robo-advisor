@@ -1,0 +1,208 @@
+{
+  "success": true,
+  "data": {
+    "tickers": [
+      {
+        "ticker": "CTG",
+        "current_weight": 0.15789473684210525,
+        "recommended_weight": 0.0757,
+        "current_weight_percent": 15.789473684210525,
+        "recommended_weight_percent": 7.57,
+        "current_capital": 3000000.0,
+        "recommended_capital": 1438247.0,
+        "change": -0.08219473684210525,
+        "change_percent": -8.219473684210525,
+        "change_amount": -1561753.0,
+        "action": "Decrease",
+        "action_vn": "Giảm",
+        "reasons": [
+          "Lợi nhuận kỳ vọng tích cực (10.58%/năm)",
+          "Tương quan cao với portfolio (0.88), tập trung rủi ro",
+          "Lợi nhuận kỳ vọng trong 9 ngày: 0.49% → Tiềm năng thấp, nên giảm allocation"
+        ],
+        "metrics": {
+          "expected_return": 10.58,
+          "volatility": 35.20,
+          "sharpe_ratio": 0.61,
+          "correlation": 0.88,
+          "momentum": 10.76,
+          "trend_ratio": 35.0,
+          "period_expected_return": 0.49
+        }
+      },
+      {
+        "ticker": "HDB",
+        "current_weight": 0.15789473684210525,
+        "recommended_weight": 0.6972,
+        "current_weight_percent": 15.789473684210525,
+        "recommended_weight_percent": 69.72,
+        "current_capital": 3000000.0,
+        "recommended_capital": 13247013.0,
+        "change": 0.5393052631578948,
+        "change_percent": 53.93052631578948,
+        "change_amount": 10247013.0,
+        "action": "Increase",
+        "action_vn": "Tăng",
+        "reasons": [
+          "Lợi nhuận kỳ vọng tích cực (32.69%/năm)",
+          "Xu hướng tăng mạnh gần đây (62.29%/năm)",
+          "Tương quan vừa phải (0.62), cân bằng rủi ro",
+          "Lợi nhuận kỳ vọng trong 9 ngày: +0.78% → Tiềm năng tích cực trong ngắn hạn",
+          "📰 Tin tích cực: \"Cổ phiếu HDBank tăng mạnh\" (Impact: 0.75, 2024-12-20)"
+        ],
+        "metrics": {
+          "expected_return": 32.69,
+          "volatility": 34.26,
+          "sharpe_ratio": 0.95,
+          "correlation": 0.62,
+          "momentum": 62.29,
+          "trend_ratio": 40.0,
+          "period_expected_return": 0.78
+        }
+      },
+      {
+        "ticker": "MWG",
+        "current_weight": 0.10526315789473684,
+        "recommended_weight": 0.0757,
+        "current_weight_percent": 10.526315789473684,
+        "recommended_weight_percent": 7.57,
+        "current_capital": 2000000.0,
+        "recommended_capital": 1438247.0,
+        "change": -0.02956315789473684,
+        "change_percent": -2.956315789473684,
+        "change_amount": -561753.0,
+        "action": "Decrease",
+        "action_vn": "Giảm",
+        "reasons": [
+          "Lợi nhuận kỳ vọng tích cực (39.02%/năm)",
+          "Có 4 tin tích cực nhưng vẫn khuyến nghị giảm do các yếu tố rủi ro khác",
+          "Tỷ lệ ngày tăng thấp (25.0%), xu hướng yếu"
+        ],
+        "metrics": {
+          "expected_return": 39.02,
+          "volatility": 30.02,
+          "sharpe_ratio": 1.30,
+          "correlation": 0.60,
+          "momentum": 15.58,
+          "trend_ratio": 25.0
+        }
+      },
+      {
+        "ticker": "SSI",
+        "current_weight": 0.05263157894736842,
+        "recommended_weight": 0.0757,
+        "current_weight_percent": 5.263157894736842,
+        "recommended_weight_percent": 7.57,
+        "current_capital": 1000000.0,
+        "recommended_capital": 1438247.0,
+        "change": 0.02306842105263158,
+        "change_percent": 2.306842105263158,
+        "change_amount": 438247.0,
+        "action": "Increase",
+        "action_vn": "Tăng",
+        "reasons": [
+          "Lợi nhuận kỳ vọng tích cực (19.84%/năm)",
+          "Tương quan vừa phải (0.52), cân bằng rủi ro",
+          "Lợi nhuận kỳ vọng trong 9 ngày: +0.47% → Có tiềm năng tăng trưởng",
+          "Sharpe ratio thấp (0.61)",
+          "Xu hướng giảm gần đây (-180.57%/năm)"
+        ],
+        "metrics": {
+          "expected_return": 19.84,
+          "volatility": 32.59,
+          "sharpe_ratio": 0.61,
+          "correlation": 0.52,
+          "momentum": -180.57,
+          "trend_ratio": 45.0,
+          "period_expected_return": 0.47
+        }
+      },
+      {
+        "ticker": "VHM",
+        "current_weight": 0.5263157894736842,
+        "recommended_weight": 0.0757,
+        "current_weight_percent": 52.63157894736842,
+        "recommended_weight_percent": 7.57,
+        "current_capital": 10000000.0,
+        "recommended_capital": 1438247.0,
+        "change": -0.4506157894736842,
+        "change_percent": -45.06157894736842,
+        "change_amount": -8561753.0,
+        "action": "Decrease",
+        "action_vn": "Giảm",
+        "reasons": [
+          "Lợi nhuận kỳ vọng rất cao (49.59%/năm)",
+          "Xu hướng giảm gần đây (-30.31%/năm)",
+          "Tương quan cao với portfolio (0.88), tập trung rủi ro"
+        ],
+        "metrics": {
+          "expected_return": 49.59,
+          "volatility": 34.59,
+          "sharpe_ratio": 1.43,
+          "correlation": 0.88,
+          "momentum": -30.31,
+          "trend_ratio": 45.0
+        }
+      }
+    ],
+    "recommended_weights": {
+      "CTG": 0.0757,
+      "HDB": 0.6972,
+      "MWG": 0.0757,
+      "SSI": 0.0757,
+      "VHM": 0.0757
+    },
+    "recommended_capitals": {
+      "CTG": 1438247.0,
+      "HDB": 13247013.0,
+      "MWG": 1438247.0,
+      "SSI": 1438247.0,
+      "VHM": 1438247.0
+    },
+    "current_weights": {
+      "CTG": 0.15789473684210525,
+      "HDB": 0.15789473684210525,
+      "MWG": 0.10526315789473684,
+      "SSI": 0.05263157894736842,
+      "VHM": 0.5263157894736842
+    },
+    "current_capitals": {
+      "CTG": 3000000.0,
+      "HDB": 3000000.0,
+      "MWG": 2000000.0,
+      "SSI": 1000000.0,
+      "VHM": 10000000.0
+    },
+    "metrics": {
+      "current_return": 39.66,
+      "recommended_return": 32.56,
+      "current_volatility": 35.20,
+      "recommended_volatility": 34.59,
+      "current_sharpe": 1.37,
+      "recommended_sharpe": 0.97,
+      "improvement_return": -7.11,
+      "improvement_sharpe": -0.40,
+      "turnover_rate": 112.48,
+      "transaction_cost": 0.28,
+      "period_expected_return": 0.20,
+      "period_days": 10,
+      "period_trading_days": 7
+    },
+    "risk_profile": {
+      "risk_tolerance": 2.0,
+      "risk_level": "Aggressive (Mạo hiểm)",
+      "target_return": 20.0
+    },
+    "total_capital": 19000000.0,
+    "news_info": {
+      "has_news": true,
+      "explanation": "Tin tức trung tính (sentiment: 0.02) | Tỷ lệ tin tích cực cao (100.0%) → Xu hướng tốt",
+      "impact_level": "positive",
+      "sentiment": 0.019,
+      "impact_score": 0.023,
+      "positive_ratio": 1.0,
+      "news_activity": 1.0
+    }
+  }
+}
+
