@@ -10,7 +10,6 @@ from pathlib import Path
 import numpy as np
 import torch
 from datetime import datetime, timedelta
-from retrain_api import retrain_bp
 
 # Set working directory to script location
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,12 +26,7 @@ except ImportError:
 
 app = Flask(__name__)
 
-# Register retrain API blueprint
-try:
-    from retrain_api import retrain_bp
-    app.register_blueprint(retrain_bp)
-except ImportError:
-    print("Warning: retrain_api not available")
+# Removed retrain_api usage
 
 # 30 mã cổ phiếu VN Index + 1 chỉ số VN-Index mặc định
 AVAILABLE_STOCKS = [
