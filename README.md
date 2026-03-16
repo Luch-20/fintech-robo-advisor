@@ -74,6 +74,25 @@ pip install -r requirements.txt
 
 ## 💻 Usage Instructions
 
+### ⚡ Quick Start
+
+```bash
+git clone https://github.com/<your-username>/<your-repo-name>.git
+cd <your-repo-name>
+pip install -r requirements.txt
+
+# 1) Prepare price data from CSV (Data_test.csv)
+python3 src/get_data.py
+
+# 2) (Optional) Train the DDPG agent from scratch
+python3 Train_Model.py
+
+# 3) Start the web application
+python3 src/app.py
+```
+
+Then open your browser at `http://127.0.0.1:5001` and select 5 VN-Index stocks plus capital amounts to get AI-powered allocation recommendations.
+
 ### Step 1: Training the Agent (Optional)
 To train the model from scratch using the top 30 VN-Index stocks over the past 2 years:
 ```bash
@@ -108,6 +127,18 @@ The agent's performance is heavily monitored using industry-standard financial m
 5. **Cumulative Transaction Costs** (Modeled at 0.3% per trade)
 6. **Maximum Drawdown (MDD)**
 
+### Benchmark Results (VN-Index universe)
+
+Using all available data in `data/Data_test.csv`, we compare the proposed IPO‑DRL strategy against simple baselines:
+
+| Strategy   | Annual Return (%) | Std Dev (%) | Sharpe Ratio | Max Drawdown (%) | Turnover | Tx Cost (cum) |
+|-----------|-------------------|-------------|--------------|------------------|----------|---------------|
+| Buy & Hold | 21.35 | 19.31 | 0.87 | 18.09 | 0.00 | 0.00 |
+| Quarterly MV | 21.35 | 19.31 | 0.87 | 18.09 | 0.00 | 0.00 |
+| **IPO‑DRL (Ours)** | **112.67** | 31.52 | **3.43** | 19.79 | 0.03 | 0.03 |
+
+> Note: Numbers above are produced from the provided synthetic/backtested dataset and should be interpreted for research/academic purposes only.
+
 ---
 
 ## 📚 References & Literature
@@ -119,3 +150,12 @@ The agent's performance is heavily monitored using industry-standard financial m
 
 ## 📄 License
 This project is developed for academic and research purposes.
+
+---
+
+## 🔭 Future Work
+
+- Extend beyond VN-Index to multi-market / multi-asset universes.
+- Add alternative RL baselines (PPO, SAC) for a more complete comparison.
+- Improve transaction-cost modeling and slippage assumptions.
+- Package the core logic as a reusable Python library and add unit tests.
