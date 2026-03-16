@@ -1,128 +1,118 @@
-# Ứng dụng Trí tuệ Nhân tạo trong Nền tảng Robo-advisor Fintech nhằm Tối ưu hóa Danh mục Đầu tư Cá nhân
+# AI-Powered Fintech Robo-Advisor for Personal Portfolio Optimization
 
-## Tóm tắt
+![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)
+![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-orange.svg)
+![Flask](https://img.shields.io/badge/Flask-Web%20App-green.svg)
 
-Nghiên cứu này đề xuất một hệ thống Robo-advisor sử dụng kết hợp hai thuật toán:
-1. **Inverse Portfolio Optimization (IPO)** - Học khẩu vị rủi ro từ phân bổ danh mục hiện tại
-2. **Deep Reinforcement Learning (DRL - DDPG)** - Tối ưu hóa phân bổ vốn đa kỳ
+## 📌 Overview
 
-Hệ thống được áp dụng trên thị trường chứng khoán Việt Nam (VN-Index) với dữ liệu từ 30 mã cổ phiếu có thanh khoản tốt và vốn hóa lớn.
+This project implements an intelligent Robo-advisor system designed to optimize personal investment portfolios. By leveraging cutting-edge Artificial Intelligence algorithms, it bridges the gap between individual risk tolerance and optimal market performance. 
 
-## Kiến trúc Hệ thống
+The system utilizes a hybrid approach combining two core algorithms:
+1. **Inverse Portfolio Optimization (IPO)**: Infers the investor's implicit risk appetite based on their current asset allocation.
+2. **Deep Reinforcement Learning (DDPG)**: Dynamically optimizes multi-period capital allocation to maximize risk-adjusted returns over time.
 
-### 1. Thu thập và Tiền xử lý Dữ liệu
-- Thu thập dữ liệu giá lịch sử (Daily Closing Price) từ Yahoo Finance và vnstock
-- Tính toán lợi suất logarit hàng ngày (Daily Log Returns)
-- Xử lý dữ liệu thiếu và ngoại lai
-- Rolling window: 126 ngày (6 tháng)
+Designed specifically for the Vietnamese stock market (VN-Index), the current model is trained and evaluated on 30 highly liquid, large-cap stocks.
+
+---
+
+## 🏗 System Architecture
+
+### 1. Data Acquisition & Preprocessing
+* **Sources**: Yahoo Finance and `vnstock`.
+* **Features**: Daily Closing Prices, Daily Log Returns, Trading Volumes, and Technical Indicators.
+* **Processing**: Built-in handling for missing data, outliers, and a rolling window of 126 days (approx. 6 months).
 
 ### 2. Inverse Portfolio Optimization (IPO)
-- Học khẩu vị rủi ro từ phân bổ danh mục hiện tại của nhà đầu tư
-- Suy luận hệ số rủi ro (risk-aversion coefficient λ) và lợi suất kỳ vọng (expected returns μ)
-- Sử dụng Mean-Variance Optimization để tính optimal weights từ historical data
+Rather than relying on subjective questionnaires, the system *learns* the investor's risk-aversion coefficient ($\lambda$) and expected returns ($\mu$) directly from their existing portfolio distribution using Mean-Variance Optimization principles.
 
-**Công thức:**
-```
-max_w w^T * μ_t - λ * w^T * Σ_t * w
+*Objective Function:*
+```text
+max_w [ w^T * μ_t - λ * w^T * Σ_t * w ]
 s.t. Σ_i w_i = 1, w_i ≥ 0
 ```
 
-### 3. Deep Reinforcement Learning (DDPG)
-- Actor-Critic architecture với DDPG algorithm
-- State: Dữ liệu giá lịch sử, technical indicators, và tham số rủi ro từ IPO
-- Action: Quyết định phân bổ tỷ trọng mới cho các tài sản
-- Reward: Tối ưu hóa tỷ suất lợi nhuận đã điều chỉnh rủi ro (Sharpe ratio, Sortino ratio, drawdown penalty)
+### 3. Deep Deterministic Policy Gradient (DDPG)
+An Actor-Critic reinforcement learning architecture is employed to handle continuous action spaces (portfolio weights).
+* **State**: Historical prices, technical indicators, market news sentiment, and IPO risk parameters.
+* **Action**: New weight distribution across the selected assets.
+* **Reward**: Risk-adjusted return metrics, specifically prioritizing the Sharpe ratio, Sortino ratio, while explicitly penalizing maximum drawdowns.
 
-## Cài đặt
+---
 
-### Yêu cầu Hệ thống
-- Python 3.7+
-- Các thư viện Python (xem requirements.txt)
+## 🚀 Installation & Setup
 
-### Cài đặt Dependencies
+### Prerequisites
+* Python 3.7 or higher
 
+### 1. Clone & Install Dependencies
 ```bash
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
 pip install -r requirements.txt
 ```
 
-### Cấu trúc Thư mục
-
-```
-Test_NCKH/
-├── app.py                  # Flask web application
-├── main.py                 # Command-line interface
-├── Train_Model.py          # Script training model
-├── robo_agent.py           # IPO Agent và DDPG Agent implementation
-├── portfolio_advisor.py    # Portfolio advisor module
-├── Get_data.py             # Data acquisition và preprocessing
-├── data_source.py          # Data source handlers
-├── data/
-│   └── Data_test.csv       # Historical stock data
-├── models/
-│   └── trained_model.pth   # Trained DDPG model
-├── templates/
-│   └── index.html          # Web interface
-├── FORMULAS.md             # Tài liệu công thức toán học
-└── README.md               # File này
+### 2. Project Structure
+```text
+.
+├── app.py                  # Flask web application entry point
+├── main.py                 # CLI entry point for portfolio analysis
+├── Train_Model.py          # Script to train the DDPG Agent
+├── robo_agent.py           # Core implementations of IPO & DDPG algorithms
+├── Get_data.py             # Data ingestion and preprocessing utilities
+├── data_source.py          # APIs for fetching financial data
+├── news_scraper.py         # Financial news scraping & sentiment analysis
+├── data/                   # Directory for historical datasets
+├── models/                 # Directory for serialized, trained models
+└── templates/              # HTML/CSS for the Flask portal
 ```
 
-## Sử dụng
+---
 
-### Bước 1: Training Model
+## 💻 Usage Instructions
 
+### Step 1: Training the Agent (Optional)
+To train the model from scratch using the top 30 VN-Index stocks over the past 2 years:
 ```bash
 python Train_Model.py
 ```
+*The trained weights will be saved automatically to `models/trained_model.pth`.*
 
-Script này sẽ:
-- Tải dữ liệu 30 mã cổ phiếu VN Index trong 2 năm gần nhất
-- Train DDPG model với tất cả 30 mã
-- Lưu model vào `models/trained_model.pth`
+### Step 2: Running the Application
 
-### Bước 2: Chạy Ứng dụng
-
-**Option 1: Web Application (Khuyến nghị)**
-
+**Option A: Web Application (Recommended)**
+Provides an interactive GUI to input current portfolio holdings and view the AI's recommendations.
 ```bash
 python app.py
 ```
+*Navigate to `http://localhost:5000` (or `http://localhost:5001` depending on port availability).*
 
-Mở trình duyệt tại: http://localhost:5000
-
-**Option 2: Command Line Interface**
-
+**Option B: Command Line Interface (CLI)**
+For programmatic usage or terminal-based analysis:
 ```bash
 python main.py
 ```
 
-## Các Chỉ Số Đánh Giá
+---
 
-Hệ thống tính toán và báo cáo các chỉ số sau:
+## 📊 Evaluation Metrics
 
-1. **Lợi suất trung bình hàng năm (Annualized Mean Return)**
-2. **Độ lệch chuẩn lợi suất (Standard Deviation)**
-3. **Tỷ lệ Sharpe (Sharpe Ratio)** - với risk-free rate từ trái phiếu chính phủ VN (4.5%)
-4. **Tỷ lệ Luân chuyển (Turnover Rate)**
-5. **Chi phí Giao dịch Lũy kế (Cumulative Transaction Cost)** - 0.3%
-6. **Mức sụt giảm tối đa (Maximum Drawdown - MDD)**
+The agent's performance is heavily monitored using industry-standard financial metrics:
+1. **Annualized Mean Return** 
+2. **Standard Deviation (Volatility)**
+3. **Sharpe Ratio** (Assumes a 4.5% risk-free rate based on VN Government Bonds)
+4. **Portfolio Turnover Rate**
+5. **Cumulative Transaction Costs** (Modeled at 0.3% per trade)
+6. **Maximum Drawdown (MDD)**
 
-## Tham Số Hệ Thống
+---
 
-- **Risk-free rate**: 4.5% annual (trái phiếu chính phủ VN)
-- **Transaction cost**: 0.3% (phí giao dịch thị trường VN)
-- **Rolling window**: 126 ngày (6 tháng)
-- **Trading days per year**: 252 ngày
+## 📚 References & Literature
+* Wang & Yu (2021) - *"Robo-Advisor using Inverse Portfolio Optimization and Deep Reinforcement Learning"*
+* Markowitz (1952) - *"Portfolio Selection"*
+* Lillicrap et. al (2015) - *"Continuous control with deep reinforcement learning"*
 
-## Tài liệu Tham khảo
+---
 
-- Wang & Yu (2021) - "Robo-Advisor using Inverse Portfolio Optimization and Deep Reinforcement Learning"
-- Markowitz (1952) - "Portfolio Selection"
-- Lillicrap et al. (2015) - "Continuous control with deep reinforcement learning"
-
-## Tác giả
-
-Nghiên cứu khoa học - Ứng dụng Trí tuệ Nhân tạo trong Nền tảng Robo-advisor Fintech
-
-## License
-
-Nghiên cứu khoa học - Sử dụng cho mục đích học thuật
+## 📄 License
+This project is developed for academic and research purposes.
