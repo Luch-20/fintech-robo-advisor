@@ -1,34 +1,40 @@
 """
 Flask Web Application for Portfolio Optimization Advisor
 
-Web interface cho hệ thống Robo-advisor sử dụng IPO và DDPG
+Web UI for the Robo-advisor (IPO + DDPG).
 """
 
 from flask import Flask, render_template, request, jsonify
 import os
+import sys
 from pathlib import Path
 import numpy as np
 import torch
 from datetime import datetime, timedelta
 
-# Set working directory to script location
-script_dir = os.path.dirname(os.path.abspath(__file__))
-if script_dir:
-    os.chdir(script_dir)
+# Ensure imports work regardless of current working directory
+THIS_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = THIS_DIR.parent
+sys.path.insert(0, str(THIS_DIR))
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from Get_data import download_stock_data
+from get_data import download_stock_data
 from robo_agent import IPOAgent, ActorNetwork, train_robo_advisor
-# Import generate_recommendation from main.py để tái sử dụng
+# Reuse the core recommendation function from `main.py` if available.
 try:
     from main import generate_recommendation as generate_recommendation_main
 except ImportError:
     generate_recommendation_main = None
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=str(PROJECT_ROOT / "templates"),
+    static_folder=str(PROJECT_ROOT / "static"),
+)
 
 # Removed retrain_api usage
 
-# 30 mã cổ phiếu VN Index + 1 chỉ số VN-Index mặc định
+# VN-Index constituents used by this demo (+ optional index symbol).
 AVAILABLE_STOCKS = [
     'ACB', 'BCM', 'BID', 'CTG', 'DGC', 'FPT', 'GAS', 'GVR', 'HDB', 'HPG',
     'LPB', 'MBB', 'MSN', 'MWG', 'PLX', 'SAB', 'SHB', 'SSB', 'SSI', 'STB',
@@ -37,12 +43,11 @@ AVAILABLE_STOCKS = [
 ]
 
 TRADING_DAYS_PER_YEAR = 252  # 252 trading days per year
-ROLLING_WINDOW_DAYS = 126  # Rolling window 126 ngày (6 tháng)
-RISK_FREE_RATE_ANNUAL = 0.045  # Risk-free rate: 4.5% annual (trái phiếu chính phủ VN)
-# Transaction cost: ~0.3% theo tài liệu
-TRANSACTION_COST_RATE = 0.003  # Transaction cost: 0.3% (phí giao dịch VN theo tài liệu)
+ROLLING_WINDOW_DAYS = 126  # ~6 months rolling window
+RISK_FREE_RATE_ANNUAL = 0.045  # Risk-free rate (VN government bond proxy)
+TRANSACTION_COST_RATE = 0.003  # Transaction cost rate (0.3%)
 
-# Global variables để cache model và data
+# Global caches
 trained_model = None
 model_info = None
 
@@ -793,54 +798,11 @@ def generate_recommendation(selected_tickers, capital_amounts, start_date, end_d
         ohlcv=ohlcv
     )
     
-    # NEW: Scrape và load news features cho các mã cổ phiếu
+    # Disable automatic news scraping by default.
+    # If you want to enable news-based features, wire in `news_features` here.
     news_features = None
-    try:
-        from news_scraper import scrape_news_for_tickers, save_news_to_database
-        from news_features import load_news_features_from_db, aggregate_news_features
-        from datetime import datetime
-        
-        # Filter bỏ chỉ số (^VNINDEX) vì không cần news cho chỉ số
-        tickers_for_news = [t for t in available_tickers if not t.startswith('^')]
-        
-        if tickers_for_news:
-            print(f"📰 Đang lấy news cho {len(tickers_for_news)} mã cổ phiếu...")
-            
-            # Scrape news cho các mã (ngày hiện tại)
-            today_str = datetime.now().strftime('%Y-%m-%d')
-            all_news = scrape_news_for_tickers(tickers_for_news, target_date=today_str, days_back=7)
-            
-            # Lưu news vào database
-            news_saved_count = 0
-            for ticker, news_list in all_news.items():
-                if news_list:
-                    save_news_to_database(news_list, ticker)
-                    news_saved_count += len(news_list)
-            
-            if news_saved_count > 0:
-                print(f"✅ Đã lưu {news_saved_count} tin tức vào database")
-            
-            # Load news features từ database
-            news_features_dict = load_news_features_from_db(tickers_for_news, target_date=today_str, days_back=7)
-            market_news_features = aggregate_news_features(news_features_dict, tickers_for_news, target_date=today_str)
-            
-            print(f"✅ Đã load news features: sentiment={market_news_features[0]:.3f}, impact={market_news_features[1]:.3f}, positive_ratio={market_news_features[2]:.3f}, activity={market_news_features[3]:.3f}")
-            
-            news_features = market_news_features
-        else:
-            print("⚠️  Không có mã cổ phiếu để lấy news (chỉ có chỉ số)")
-            news_features = None
-        
-    except ImportError as e:
-        print(f"⚠️  Không thể import news modules: {e}")
-        print("   → Tiếp tục prediction không có news features")
-        news_features = None
-    except Exception as e:
-        print(f"⚠️  Lỗi khi lấy news: {e}")
-        print("   → Tiếp tục prediction không có news features")
-        news_features = None
     
-    # Get recommendation from trained model with improved state (with OHLCV + News)
+    # Get recommendation from trained model (state uses prices + OHLCV only for now)
     state = extract_state_features(returns, prices, ohlcv=ohlcv, news_features=news_features)
     
     # Check for NaN in state

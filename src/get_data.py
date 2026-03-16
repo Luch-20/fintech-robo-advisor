@@ -1,5 +1,5 @@
 """
-Get Data Module - Lấy dữ liệu giá cổ phiếu theo ngày (daily data)
+Data acquisition utilities (daily price data).
 """
 import numpy as np
 import pandas as pd
@@ -8,25 +8,36 @@ import os
 import warnings
 warnings.filterwarnings('ignore')
 
-# Không cần import data_source vì chỉ đọc từ CSV
+# Project paths (avoid chdir; keep paths deterministic)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = PROJECT_ROOT / "data"
+
+# Optional online fetch (Yahoo Finance via yfinance)
+try:
+    # `data_source.py` sits next to this file.
+    from data_source import download_daily_data_yahoo  # type: ignore
+    HAS_YAHOO = True
+except Exception:
+    HAS_YAHOO = False
+
+# Backward-compat flag used by older logic
 HAS_CUSTOM_DATA_SOURCE = False
 
-# Set working directory to script location
-script_dir = os.path.dirname(os.path.abspath(__file__))
-if script_dir:
-    os.chdir(script_dir)
+# Disable online fetch by default (sandbox/proxy often blocks it).
+# Enable by running: ENABLE_ONLINE_DATA=1 python3 src/get_data.py
+ENABLE_ONLINE_DATA = os.environ.get("ENABLE_ONLINE_DATA", "0") == "1"
 
 
 def check_ticker_validity(ticker, data_source='vnstock'):
     """
-    Kiểm tra xem mã cổ phiếu có hợp lệ và có dữ liệu trên nguồn không
+    Validate whether a ticker is likely valid for the configured data source.
     
     Args:
-        ticker: Mã cổ phiếu cần kiểm tra
-        data_source: Nguồn dữ liệu để kiểm tra
+        ticker: Stock symbol to validate
+        data_source: Data source name (best-effort)
     
     Returns:
-        (is_valid, reason): Tuple (True/False, lý do)
+        (is_valid, reason): Tuple (True/False, reason)
     """
     ticker_clean = ticker.upper().replace('^', '')
     
@@ -238,7 +249,11 @@ def merge_ohlcv(ohlcv1, ohlcv2):
 
 def download_stock_data(tickers, start_date, end_date, use_cache=True, cache_manager=None, data_source='csv'):
     """
-    Load dữ liệu giá cổ phiếu từ file CSV Data_test.csv (KHÔNG DOWNLOAD)
+    Lấy dữ liệu daily cho danh sách tickers.
+
+    - Ưu tiên: tải từ Yahoo Finance (nếu khả dụng) để có dữ liệu mới nhất.
+    - Fallback: đọc từ CSV hiện có (Data_test.csv).
+    - (Tùy chọn) có thể ghi cập nhật trở lại CSV để lần sau chạy không cần tải lại.
     
     Args:
         tickers (list): Danh sách stock symbols ['AAPL', 'GOOGL', ...]
@@ -253,47 +268,65 @@ def download_stock_data(tickers, start_date, end_date, use_cache=True, cache_man
         returns (DataFrame): Returns theo ngày (%)
         ohlcv (dict): Dictionary chứa Open, High, Low, Close, Volume DataFrames
     """
-    # CHỈ ĐỌC TỪ CSV - KHÔNG DOWNLOAD
-    # Tìm file vn_stocks_data_2020_2025.csv ở data/ hoặc thư mục gốc
-    csv_path = Path('data') / 'vn_stocks_data_2020_2025.csv'
-    if not csv_path.exists():
-        csv_path = Path('vn_stocks_data_2020_2025.csv')
-    if not csv_path.exists():
-        # Fallback cũ nếu chưa có file mới
-        csv_path = Path('data') / 'Data_test.csv'
-    if not csv_path.exists():
-        print(f"❌ CSV file not found: {csv_path}")
-        print(f"   Vui lòng đảm bảo file vn_stocks_data_2020_2025.csv tồn tại trong thư mục data/")
-        return None, None, None
+    def _default_csv_path() -> Path:
+        # Prefer newest known file names if present
+        preferred = [
+            DATA_DIR / "vn_stocks_data_2020_2025.csv",
+            PROJECT_ROOT / "vn_stocks_data_2020_2025.csv",
+            DATA_DIR / "Data_test.csv",
+        ]
+        for p in preferred:
+            if p.exists():
+                return p
+        return preferred[-1]
+
+    csv_path = _default_csv_path()
+
+    # 1) Try online fetch (Yahoo) if requested/available
+    prices_y, returns_y, ohlcv_y = None, None, None
+    if data_source in ("auto", "yahoo") and HAS_YAHOO and ENABLE_ONLINE_DATA:
+        try:
+            prices_y, returns_y, ohlcv_y = download_daily_data_yahoo(tickers, start_date, end_date)
+        except Exception:
+            prices_y, returns_y, ohlcv_y = None, None, None
     
-    # Load data từ CSV
-    prices_csv, returns_csv, ohlcv_csv = load_data_from_csv(str(csv_path), tickers, start_date, end_date)
+    # 2) Load from CSV (fallback + merge base)
+    prices_csv, returns_csv, ohlcv_csv = (None, None, None)
+    if csv_path.exists():
+        prices_csv, returns_csv, ohlcv_csv = load_data_from_csv(str(csv_path), tickers, start_date, end_date)
     
-    if prices_csv is None or prices_csv.empty:
+    # 3) Merge results (prefer Yahoo, fill gaps with CSV)
+    prices = merge_dataframes(prices_y, prices_csv)
+    returns = None
+    if prices is not None and not prices.empty:
+        returns = prices.pct_change().dropna()
+    ohlcv = merge_ohlcv(ohlcv_y, ohlcv_csv)
+    
+    if prices is None or prices.empty or returns is None:
+        # If nothing works, keep old behavior of failing fast
+        if not csv_path.exists():
+            print(f"❌ CSV file not found: {csv_path}")
+            print(f"   Vui lòng đảm bảo file Data_test.csv tồn tại trong thư mục data/")
         return None, None, None
     
     # Kiểm tra xem có mã nào thiếu không
-    available_tickers = list(prices_csv.columns)
+    available_tickers = list(prices.columns)
     
     # Chỉ trả về các mã có sẵn
-    available_cols = [t for t in tickers if t in prices_csv.columns]
+    available_cols = [t for t in tickers if t in prices.columns]
     
     if not available_cols:
         return None, None, None
     
-    prices = prices_csv[available_cols] if available_cols else prices_csv
-    returns = returns_csv[available_cols] if available_cols else returns_csv
+    prices = prices[available_cols] if available_cols else prices
+    returns = returns[available_cols] if available_cols else returns
     
     # Filter OHLCV for available tickers
-    ohlcv = {}
-    if ohlcv_csv:
-        for key in ohlcv_csv:
-            if ohlcv_csv[key] is not None and not ohlcv_csv[key].empty:
-                ohlcv_cols = [t for t in available_cols if t in ohlcv_csv[key].columns]
-                if ohlcv_cols:
-                    ohlcv[key] = ohlcv_csv[key][ohlcv_cols]
-                else:
-                    ohlcv[key] = pd.DataFrame()
+    if ohlcv:
+        for key in list(ohlcv.keys()):
+            if ohlcv[key] is not None and not ohlcv[key].empty:
+                ohlcv_cols = [t for t in available_cols if t in ohlcv[key].columns]
+                ohlcv[key] = ohlcv[key][ohlcv_cols] if ohlcv_cols else pd.DataFrame()
     
     return prices, returns, ohlcv
 
@@ -707,14 +740,12 @@ def main():
     print(f"⏰ Data Type: DAILY (1-day intervals)")
     print(f"📊 Stocks: {len(TICKERS_TO_DOWNLOAD)} stocks")
     print(f"   {', '.join(TICKERS_TO_DOWNLOAD)}")
-    print(f"\n💡 Data Source: CHỈ ĐỌC TỪ CSV (Data_test.csv)")
-    print(f"   KHÔNG DOWNLOAD từ nguồn online!")
+    print(f"\n💡 Data Source: ưu tiên Yahoo Finance (nếu có), fallback CSV")
     # Tính số ngày trading kỳ vọng (2 năm = ~500 trading days, ít nhất 400 ngày)
     expected_trading_days = 400  # Tối thiểu 400 ngày trading trong 2 năm
     expected_tickers = len(TICKERS_TO_DOWNLOAD)  # Phải có đủ 30 mã
     
-    # CHỈ ĐỌC TỪ CSV - KHÔNG DOWNLOAD
-    csv_path = Path('data') / 'Data_test.csv'
+    csv_path = DATA_DIR / 'Data_test.csv'
     
     if not csv_path.exists():
         print(f"\n❌ LỖI: Không tìm thấy file CSV: {csv_path}")
@@ -722,7 +753,10 @@ def main():
         return
     
     print(f"\n📂 Loading dữ liệu từ CSV: {csv_path}")
-    prices, returns, ohlcv = load_data_from_csv(str(csv_path), TICKERS_TO_DOWNLOAD, start_date, end_date)
+    # Try to refresh with online source first, then fallback to CSV
+    prices, returns, ohlcv = download_stock_data(
+        TICKERS_TO_DOWNLOAD, start_date, end_date, use_cache=False, data_source="auto"
+    )
     
     # VALIDATION: Kiểm tra đảm bảo đủ dữ liệu
     if prices is None or returns is None:
@@ -809,7 +843,7 @@ def main():
     print(f"  ✓ {OUTPUT_DIR}/returns.csv")
     print(f"  ✓ {OUTPUT_DIR}/info.txt")
     print(f"\nNext step:")
-    print(f"  → Run: python Train_Model.py")
+    print("  → Run: python3 Train_Model.py")
     print("="*70)
 
 

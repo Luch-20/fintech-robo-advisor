@@ -7,14 +7,17 @@ Hệ thống tư vấn đầu tư tự động sử dụng:
 """
 
 import os
+import sys
+from pathlib import Path
 import numpy as np
 
-# Set working directory to script location
-script_dir = os.path.dirname(os.path.abspath(__file__))
-if script_dir:
-    os.chdir(script_dir)
+# Ensure imports work regardless of current working directory
+THIS_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = THIS_DIR.parent
+sys.path.insert(0, str(THIS_DIR))
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from Get_data import download_stock_data, save_data
+from get_data import download_stock_data, save_data
 from robo_agent import IPOAgent, train_robo_advisor
 
 # 30 mã cổ phiếu VN Index + 1 chỉ số VN-Index mặc định

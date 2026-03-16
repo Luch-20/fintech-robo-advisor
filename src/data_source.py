@@ -9,13 +9,24 @@ from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
-# Try to import vnstock (Vietnamese stock market library)
-try:
-    from vnstock import *
-    HAS_VNSTOCK = True
-except ImportError:
-    HAS_VNSTOCK = False
-    print("ℹ️  vnstock not installed. Install with: pip install vnstock")
+HAS_VNSTOCK = False
+
+
+def _try_import_vnstock():
+    """
+    Lazy import vnstock to avoid side-effects at module import time.
+    Some environments (sandbox/proxy) can fail network/init when importing vnstock.
+    """
+    global HAS_VNSTOCK
+    try:
+        # Import inside function to reduce import-time side effects
+        from vnstock import stock_historical_data  # type: ignore
+
+        HAS_VNSTOCK = True
+        return stock_historical_data
+    except Exception:
+        HAS_VNSTOCK = False
+        return None
 
 
 def download_daily_data_yahoo(tickers, start_date, end_date):
@@ -191,7 +202,8 @@ def download_daily_data_vnstock(tickers, start_date, end_date):
         returns: DataFrame với daily returns
         ohlcv: Dict với daily OHLCV data
     """
-    if not HAS_VNSTOCK:
+    stock_historical_data = _try_import_vnstock()
+    if stock_historical_data is None:
         return None, None, None
     
     print(f"   📥 Trying vnstock...")

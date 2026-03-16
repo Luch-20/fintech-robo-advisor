@@ -55,13 +55,16 @@ pip install -r requirements.txt
 ### 2. Project Structure
 ```text
 .
-├── app.py                  # Flask web application entry point
-├── main.py                 # CLI entry point for portfolio analysis
-├── Train_Model.py          # Script to train the DDPG Agent
-├── robo_agent.py           # Core implementations of IPO & DDPG algorithms
-├── Get_data.py             # Data ingestion and preprocessing utilities
-├── data_source.py          # APIs for fetching financial data
-├── news_scraper.py         # Financial news scraping & sentiment analysis
+├── Train_Model.py          # Train entrypoint (compat wrapper)
+├── src/                    # Source code
+│   ├── app.py              # Flask web application
+│   ├── main.py             # CLI entry point for portfolio analysis
+│   ├── train_model.py      # Model training script
+│   ├── get_data.py         # Data ingestion and preprocessing utilities
+│   ├── robo_agent.py       # Core IPO & DDPG implementations
+│   ├── data_source.py      # APIs for fetching financial data
+│   ├── news_scraper.py     # Financial news scraping & sentiment analysis
+│   └── news_features.py    # News feature engineering
 ├── data/                   # Directory for historical datasets
 ├── models/                 # Directory for serialized, trained models
 └── templates/              # HTML/CSS for the Flask portal
@@ -74,7 +77,7 @@ pip install -r requirements.txt
 ### Step 1: Training the Agent (Optional)
 To train the model from scratch using the top 30 VN-Index stocks over the past 2 years:
 ```bash
-python Train_Model.py
+python3 Train_Model.py
 ```
 *The trained weights will be saved automatically to `models/trained_model.pth`.*
 
@@ -83,14 +86,14 @@ python Train_Model.py
 **Option A: Web Application (Recommended)**
 Provides an interactive GUI to input current portfolio holdings and view the AI's recommendations.
 ```bash
-python app.py
+python3 src/app.py
 ```
-*Navigate to `http://localhost:5000` (or `http://localhost:5001` depending on port availability).*
+*Navigate to `http://127.0.0.1:5002` (or the port printed in the console).*
 
 **Option B: Command Line Interface (CLI)**
 For programmatic usage or terminal-based analysis:
 ```bash
-python main.py
+python3 src/main.py
 ```
 
 ---

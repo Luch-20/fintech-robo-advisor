@@ -20,7 +20,7 @@ from rebalance import (
     summary_table,
 )
 from typing import List
-from Get_data import download_stock_data
+from get_data import download_stock_data
 from robo_agent import IPOAgent, ActorNetwork, extract_state_features
 import torch
 from pathlib import Path

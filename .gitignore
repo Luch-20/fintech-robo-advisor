@@ -22,6 +22,11 @@ data/*.csv
 !data/Data_test.csv
 data/AAPL/
 data/default_portfolio/
+data/info.txt
+data/prices.csv
+data/returns.csv
+data/report_table*.csv
+data/test_results_comparison.csv
 
 # Models
 models/*.pth

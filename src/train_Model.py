@@ -5,16 +5,18 @@ Train DDPG agent với 30 mã cổ phiếu VN Index
 """
 
 import os
+import sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Set working directory to script location
-script_dir = os.path.dirname(os.path.abspath(__file__))
-if script_dir:
-    os.chdir(script_dir)
+# Ensure imports work regardless of current working directory
+THIS_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = THIS_DIR.parent
+sys.path.insert(0, str(THIS_DIR))
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from Get_data import download_stock_data, save_data
+from get_data import download_stock_data, save_data
 from robo_agent import train_robo_advisor
 import torch
 
